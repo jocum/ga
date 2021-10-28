@@ -23,15 +23,21 @@ type Box struct {
 	UseH        int     //  使用了多少高度
 	UseAera     int     //  使用的面积总和
 	Rate        float64 //  面积使用率
+	Padding     int     //  箱子内边距
+	TopPadding  int     //	上面预留内边距
+	DownPadding int     //	下面预留内边距
 	parent      *Bl     `json:"-"` //	父级地址
 }
 
 // 初始化箱子
-func NewBox(w, h int, bl *Bl) *Box {
+func NewBox(w, h, padding, topPadding, downPadding int, bl *Bl) *Box {
 	return &Box{
 		Width:       w,
 		Height:      h,
 		parent:      bl,
+		Padding:     padding,
+		TopPadding:  topPadding,
+		DownPadding: downPadding,
 		horizontals: make([]HLine, 0),
 		verticals:   make([]VLine, 0),
 		Rects:       make([]Rect, 0),
@@ -213,10 +219,10 @@ func (b *Box) Exprot(rect Rect) bool {
 */
 func (b *Box) Check(rect Rect) bool {
 	// 先判断 宽高是否超标
-	if b.Width < rect.GetW() {
+	if (b.Width - 2*b.Padding) < rect.GetW() {
 		return false
 	}
-	if b.Height < rect.GetH() {
+	if (b.Height - b.TopPadding - b.DownPadding) < rect.GetH() {
 		return false
 	}
 	for _, v := range b.horizontals {
@@ -245,7 +251,7 @@ func (b *Box) GetInto(rect Rect) {
 		return
 	}
 	// 矩阵入箱 默认坐标为箱子的右顶点
-	rect.SetPoint(b.Width, b.Height)
+	rect.SetPoint(b.Width-2*b.Padding, b.Height-b.TopPadding-b.DownPadding)
 	// 判断当前的箱子是否还能放入这个矩形
 	if !b.Check(rect) {
 		// 尝试旋转矩形
@@ -274,6 +280,8 @@ func (b *Box) GetInto(rect Rect) {
 		b.UseH = rect.GetPoint().Y
 	}
 	// 入库完成 添加入已入库数据组
+	// 整体移动 一个padding 的距离
+	// 使用的高度也添加一个padding
 	b.Rects = append(b.Rects, rect)
 	// 记录矩阵总面积
 	b.UseAera += rect.GetArea()
