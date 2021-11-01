@@ -135,7 +135,7 @@ func (bl *Bl) Packing() {
 		rect.GetPoint().Y += box.TopPadding
 	}
 	// 装完后 使用高度+一个下方内边距
-	box.UseH += box.DownPadding
+	box.UseH += box.DownPadding + box.TopPadding
 	// 计算使用率
 	box.CountRate()
 	// 完成一个装箱
